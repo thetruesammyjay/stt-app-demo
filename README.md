@@ -50,4 +50,4 @@ To run the unit tests, use the following command:
 
 ## Check it out
 
-**Vercel**: (stt-app-demo)[https://stt-app-demo.vercel.app/]
+**Vercel**: [stt-app-demo](https://stt-app-demo.vercel.app/)
