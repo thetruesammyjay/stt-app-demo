@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Transcriber - Speech-to-Text App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4285F4;  /* Google Blue */
+            --secondary: #34A853; /* Google Green */
+            --accent: #EA4335;   /* Google Red */
+            --dark: #202124;     /* Google Dark Gray */
+            --light: #F8F9FA;    /* Light background */
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        header {
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            color: var(--dark);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .transcription-card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .transcription-text {
+            font-size: 1.2rem;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 150px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            font-weight: bold;
+        }
+        
+        .status-indicator i {
+            margin-right: 0.5rem;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button i {
+            margin-right: 0.5rem;
+        }
+        
+        button:hover {
+            background-color: #3367D6;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #start-btn {
+            background-color: var(--primary);
+        }
+        
+        #stop-btn {
+            background-color: var(--accent);
+            display: none;
+        }
+        
+        #save-btn {
+            background-color: var(--secondary);
+        }
+        
+        #save-btn:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+        }
+        
+        .language-selector {
+            margin-bottom: 2rem;
+        }
+        
+        select {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 2px solid #DDDDDD;
+            font-size: 1rem;
+            width: 200px;
+        }
+        
+        footer {
+            margin-top: auto;
+            padding-top: 2rem;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .transcription-text {
+                font-size: 1rem;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+
+        /* Animation for when recording is active */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .recording {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microphone-alt"></i> Voice Transcriber</h1>
+            <p class="subtitle">Convert your speech to text instantly</p>
+        </header>
+        
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <select id="language-select">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="es-ES">Spanish</option>
+                <option value="fr-FR">French</option>
+                <option value="de-DE">German</option>
+            </select>
+        </div>
+        
+        <!-- Status Indicator -->
+        <div class="status-indicator" id="status-indicator">
+            <i class="fas fa-info-circle"></i>
+            <span id="status-text">Ready to transcribe</span>
+        </div>
+        
+        <!-- Transcription Card -->
+        <div class="transcription-card">
+            <div class="transcription-text" id="transcription-text">
+                Your transcribed text will appear here...
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="button-container">
+            <button id="start-btn">
+                <i class="fas fa-microphone"></i> Start Listening
+            </button>
+            <button id="stop-btn">
+                <i class="fas fa-stop"></i> Stop
+            </button>
+            <button id="save-btn" disabled>
+                <i class="fas fa-save"></i> Save Transcript
+            </button>
+        </div>
+        
+        <footer>
+            <p>Riamah Oghenerume James - Voice Transcriber - Speech-to-Text Technology</p>
+            <p>Powered by Web Speech API</p>
+        </footer>
+    </div>
+    
+    <script>
+        // DOM elements
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const languageSelect = document.getElementById('language-select');
+        const transcriptionText = document.getElementById('transcription-text');
+        const statusText = document.getElementById('status-text');
+        const statusIndicator = document.getElementById('status-indicator');
+        
+        // Speech recognition variables
+        let recognition;
+        let isRecording = false;
+        let finalTranscript = '';
+        
+        // Initialize speech recognition
+        function initializeSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window)) {
+                statusText.textContent = 'Speech recognition not supported in your browser';
+                statusIndicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Browser not supported';
+                startBtn.disabled = true;
+                return;
+            }
+            
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = languageSelect.value;
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'flex';
+                statusText.textContent = 'Listening... Speak now';
+                statusIndicator.innerHTML = '<i class="fas fa-circle recording"></i> Listening';
+                transcriptionText.textContent = '';
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                statusText.textContent = `Error: ${event.error}`;
+                statusIndicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                resetUI();
+            };
+            
+            recognition.onend = () => {
+                if (isRecording) {
+                    // If still supposed to be recording, restart
+                    recognition.start();
+                } else {
+                    resetUI();
+                }
+            };
+            
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                transcriptionText.innerHTML = finalTranscript + '<span style="color:#999">' + interimTranscript + '</span>';
+                
+                // Enable save button if we have content
+                if (finalTranscript.trim().length > 0) {
+                    saveBtn.disabled = false;
+                }
+            };
+        }
+        
+        // Reset UI to default state
+        function resetUI() {
+            isRecording = false;
+            startBtn.style.display = 'flex';
+            stopBtn.style.display = 'none';
+            
+            if (finalTranscript.trim().length > 0) {
+                statusText.textContent = 'Ready to continue';
+                statusIndicator.innerHTML = '<i class="fas fa-info-circle"></i> Ready to continue';
+            } else {
+                statusText.textContent = 'Ready to transcribe';
+                statusIndicator.innerHTML = '<i class="fas fa-info-circle"></i> Ready to transcribe';
+            }
+        }
+        
+        // Save transcript to file
+        function saveTranscript() {
+            if (finalTranscript.trim().length === 0) return;
+            
+            const blob = new Blob([finalTranscript], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'transcript.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            finalTranscript = '';
+            transcriptionText.textContent = '';
+            saveBtn.disabled = true;
+            recognition.lang = languageSelect.value;
+            recognition.start();
+        });
+        
+        stopBtn.addEventListener('click', () => {
+            isRecording = false;
+            recognition.stop();
+        });
+        
+        saveBtn.addEventListener('click', saveTranscript);
+        
+        languageSelect.addEventListener('change', () => {
+            if (recognition) {
+                recognition.lang = languageSelect.value;
+            }
+        });
+        
+        // Initialize the app
+        window.addEventListener('DOMContentLoaded', initializeSpeechRecognition);
+    </script>
+</body>
+</html>

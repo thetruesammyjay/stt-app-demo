@@ -1,0 +1,39 @@
+{
+  "name": "stt-app",
+  "version": "1.0.0",
+  "description": "A browser-based Speech-to-Text application using the Web Speech API.",
+  "main": "src/js/app.js",
+  "scripts": {
+    "start": "live-server public --port=3000 --open=/",
+    "test": "jest",
+    "test:watch": "jest --watchAll",
+    "build": "echo 'No build step required for pure JS app'",
+    "lint": "eslint src/js/**/*.js",
+    "format": "prettier --write src/**/*.{js,css,html}"
+  },
+  "dependencies": {
+    "core-js": "^3.41.0",
+    "howler": "^2.2.3",
+    "whatwg-fetch": "^3.6.20"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.23.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0",
+    "live-server": "^1.2.2",
+    "prettier": "^3.2.5"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions"
+  ],
+  "author": "sammyjayisthename, Inc",
+  "license": "MIT",
+  "keywords": [
+    "speech-to-text",
+    "web-speech-api",
+    "javascript"
+  ]
+}
