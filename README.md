@@ -45,3 +45,9 @@ To run the unit tests, use the following command:
    ```bash
    npm test
    ```
+
+---
+
+## Check it out
+
+**Vercel**: (stt-app-demo)[https://stt-app-demo.vercel.app/]
